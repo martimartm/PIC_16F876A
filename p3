@@ -1,0 +1,45 @@
+; 3.1 Escribe un programa que utilice timer0 que incremente la 
+; 	 variable CICLO_125us y se incremente cada 125us
+
+LIST p=16f876A
+include "p16f876a.inc"
+
+ciclo_125us		EQU 	0x20
+N				EQU 	0x25	
+;n vale 131
+
+ORG	0
+goto inicio
+
+ORG	4
+goto	ISR
+ORG	5
+
+inicio
+;hay que habilitar el GIE de habilitamiento global de interrupción
+BSF	INTCON, GIE
+
+;Tenemos que cambiar al banco 1 donde esta option_reg
+BSF	STATUS,RPO		
+
+;Estando en el banco 1  modificamos el timer0
+
+BCF		OPTION_REG,T0CS ; modo temporizador (ciclos de instrucción)
+BSF		OPTION_REG,PSA  ; Queremos configurar como WDT (Prescaler 1:1)
+
+;hay que volver al banco0
+BCF		STATUS,RPO
+
+
+main						;bucle principal que no hace nada
+		goto main
+
+ISR							;rutina de interrupción
+
+	incf	ciclo_125us,1		;incrementar la variable
+	bcf		INTCON, T0IF		;borrar el flag de desboradamiento del Timer0
+retfie	; como el return pero en rutina de interrupción
+
+
+
+END
